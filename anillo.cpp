@@ -240,7 +240,7 @@ void checkReceivedTransmission()
                 if (receivedFrame2.ttl > 0) {
                     printf("Re-enviando broadcast ttl %d\n", receivedFrame2.ttl);
                     delay(1000);
-                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet2, frame2, receivedFrame2.ttl-1);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl-1);
                     transmissionPort = txPin2;
                     startTransmission();
                 }
@@ -267,7 +267,7 @@ void broadcast()
     {
         timeToBroadcast = currentTime + 120;
         
-        prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethf, f, 2);
+        prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
         transmissionPort = txPin;
         startTransmission();
     }
