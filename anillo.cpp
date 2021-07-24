@@ -22,36 +22,53 @@
 #define MAX_CONNECTED_NODES 2
 #define BYTE unsigned char
 
-int transmissionPort;
+// Prototypes
 
-void startTransmission();
+void startTransmission(char* msg);
 void cb(void);
 void processBit(bool level);
 void processBit2(bool level);
 void loop();
 void broadcast();
 void checkReceivedTransmission();
+void setupTransmissionPort(int port);
+void setTypeTransmission(char *msg);
+
+
+// General purpose global vars
+
+int transmissionPort;
+int idlePort;
+
+int clockPin;
+int txPin;
+int rxPin;
+int txPin2;
+int rxPin2;
 
 Node routeTable[MAX_CONNECTED_NODES];
-
-int timeToBroadcast = 0;
-int currentTime = 0;
 
 char macOrigin[18];
 char macBroadcast[18] = "ff:ff:ff:ff:ff:ff";
 BYTE byteMacBroadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 BYTE byteMacOrigin[6];
 
+// Broadcast control global vars
+int timeToBroadcast = 0;
+int currentTime = 0;
+
+
+
 // GLOBAL VARS FOR SENDING PURPOSES
 volatile int nbitsSend = 0;
 BYTE slipArrayToSend[MAX_TRANSFER_SIZE];
 volatile int nbytesSend = 0;
-BYTE len = 10;
 int nones = 0;
 bool transmissionStartedSend = false;
 int endCount = 0;
 Ethernet ethernet;
 Frame frame;
+char sendTypeTransmission[30];
 
 // GLOBAL VARS FOR RECEIVING PURPOSES
 volatile int nbitsReceived, nbitsReceived2 = 0;
@@ -64,11 +81,6 @@ bool error, error2 = false;
 Frame receivedFrame, receivedFrame2;
 Ethernet receivedEthernet, receivedEthernet2;
 
-int clockPin;
-int txPin;
-int rxPin;
-int txPin2;
-int rxPin2;
 
 int main(int argc, char *args[])
 {
@@ -166,6 +178,7 @@ void loop()
             {
                 clearScreen();
                 printf("Sending data... %d bytes\n", nbytesSend);
+                printf("Transmission type: %s\n", sendTypeTransmission);
                 delay(1000);
             }
             // RESET ARRAY TO SEND
@@ -213,8 +226,8 @@ void checkReceivedTransmission()
                     printf("Re-enviando broadcast ttl %d\n", receivedFrame.ttl);
                     delay(1000);
                     prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl - 1);
-                    transmissionPort = txPin2;
-                    startTransmission();
+                    setupTransmissionPort(2);
+                    startTransmission("RE-BROADCAST-1");
                 }
             }
             return;
@@ -255,8 +268,8 @@ void checkReceivedTransmission()
                     printf("Re-enviando broadcast ttl %d\n", receivedFrame2.ttl);
                     delay(1000);
                     prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl - 1);
-                    transmissionPort = txPin2;
-                    startTransmission();
+                    setupTransmissionPort(1);
+                    startTransmission("RE-BROADCAST-2");
                 }
             }
             return;
@@ -284,8 +297,8 @@ void broadcast()
         timeToBroadcast = currentTime + 120;
 
         prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
-        transmissionPort = txPin;
-        startTransmission();
+        setupTransmissionPort(1);
+        startTransmission("BROADCAST");
     }
 }
 
@@ -330,8 +343,7 @@ void cb(void)
     else
     {
         // Channel idle
-        digitalWrite(txPin, 1);
-        digitalWrite(txPin2, 1);
+        digitalWrite(idlePort, 1);
     }
 }
 
@@ -420,7 +432,20 @@ void processBit2(bool level)
     }
 }
 
-void startTransmission()
+void startTransmission(char *msg)
 {
     transmissionStartedSend = true;
+    setTypeTransmission(msg);
+}
+void setupTransmissionPort(int port) {
+    if (port == 1) {
+        transmissionPort = txPin;
+        idlePort = txPin2;
+    } else if (port == 2) {
+        transmissionPort = txPin2;
+        idlePort = txPin;
+    }
+}
+void setTypeTransmission(char *msg) {
+    memcpy(sendTypeTransmission, msg, sizeof(sendTypeTransmission));
 }
