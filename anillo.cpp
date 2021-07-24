@@ -43,7 +43,9 @@ Ethernet ethf;
 Frame f;
 
 char macOrigin[18] = "00:00:00:00:00:00";
-BYTE macBroadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+char macBroadcast[18] = "ff:ff:ff:ff:ff:ff";
+BYTE byteMacBroadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+BYTE byteMacOrigin[6];
 
 // GLOBAL VARS FOR SENDING PURPOSES
 volatile int nbitsSend = 0;
@@ -85,6 +87,7 @@ int main(int argc, char *args[])
         rxPin = atoi(args[4]);
         txPin2 = atoi(args[5]);
         rxPin2 = atoi(args[6]);
+        convertMacAddressToByteArray(macOrigin, byteMacOrigin);
     }
     else
     {
@@ -167,7 +170,7 @@ void loop()
             delay(1000);
         }
 
-        checkReceivedTranmission();
+        checkReceivedTransmission();
 
         // proceso automatico
         broadcast();
@@ -188,10 +191,9 @@ void checkReceivedTransmission()
             printf("-----    IGNORING COMPLETE MESSAGE   ----- \n");
             delay(5000);
         }
-        BYTE byteMacOrigin[6];
-        convertMacAddressToByteArray(macOrigin, byteMacOrigin);
+
         bool isForMe = compareMacAddress(receivedEthernet.destiny, byteMacOrigin);
-        bool isBroadcast = compareMacAddress(receivedEthernet.destiny, macBroadcast);
+        bool isBroadcast = compareMacAddress(receivedEthernet.destiny, byteMacBroadcast);
         if (isBroadcast) {
             printf("Got Broadcast...\n");
             if (receivedFrame.cmd == 5) {
@@ -200,7 +202,7 @@ void checkReceivedTransmission()
                     //add into routeTable
                 }
                 if (receivedFrame.ttl > 0) {
-                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, ttl-1);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl-1);
                     transmissionPort = txPin2;
                     startTransmission();
                 }
@@ -225,7 +227,8 @@ void broadcast()
     if (currentTime - timeToBroadcast > 0)
     {
         timeToBroadcast = currentTime + 30;
-        prepareBroadcast(slipArray, strMacSource, macBroadcast, ethf, f, 2);
+        
+        prepareBroadcast(slipArray, macOrigin, macBroadcast, ethf, f, 2);
         transmissionPort = txPin1;
         startTransmission();
     }
