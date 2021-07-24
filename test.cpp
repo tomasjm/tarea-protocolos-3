@@ -121,8 +121,7 @@ void cb(void)
     printf("CALLBACKKKKK\n");
     bool level = digitalRead(rxPin);
     bool level2 = digitalRead(rxPin2);
-    processBit(level);
-    processBit2(level2);
+
     if (transmissionStartedSend)
     {
         if (endCount == 0 && slipArrayToSend[nbytesSend] != 0xC0)
