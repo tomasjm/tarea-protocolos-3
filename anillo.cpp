@@ -214,6 +214,7 @@ void checkReceivedTransmission()
         }
         boolReceivedFrame = false;
     }
+    delay(3000);
     // for 2
 }
 
