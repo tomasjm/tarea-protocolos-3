@@ -171,7 +171,7 @@ void loop()
         // proceso automatico
         broadcast();
         fflush(stdin);
-        cDelay(3000);
+        delay(3000);
     }
 }
 
