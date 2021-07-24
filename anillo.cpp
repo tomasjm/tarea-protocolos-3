@@ -32,12 +32,10 @@ void loop();
 void broadcast();
 void checkReceivedTransmission();
 
-
 Node routeTable[MAX_CONNECTED_NODES];
 
 int timeToBroadcast = 0;
 int currentTime = 0;
-
 
 char macOrigin[18] = "00:00:00:00:00:00";
 char macBroadcast[18] = "ff:ff:ff:ff:ff:ff";
@@ -162,9 +160,16 @@ void loop()
             exit(-1);
         }
 
-        if (transmissionStartedSend) {
-            printf("Se están enviando bytes... \n");
-            delay(1000);
+        if (transmissionStartedSend)
+        {
+            while (transmissionStartedSend)
+            {
+                clearScreen();
+                printf("Sending data... %d bytes\n", nbytesSend);
+                delay(1000);
+            }
+            // RESET ARRAY TO SEND
+            memset(slipArrayToSend, 0, sizeof(slipArrayToSend));
         }
 
         checkReceivedTransmission();
@@ -192,25 +197,30 @@ void checkReceivedTransmission()
 
         bool isForMe = compareMacAddress(receivedEthernet.destiny, byteMacOrigin);
         bool isBroadcast = compareMacAddress(receivedEthernet.destiny, byteMacBroadcast);
-        if (isBroadcast) {
+        if (isBroadcast)
+        {
             printf("Got Broadcast...\n");
-            if (receivedFrame.cmd == 5) {
+            if (receivedFrame.cmd == 5)
+            {
                 int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet.source);
-                if (p == -1) {
+                if (p == -1)
+                {
                     //add into routeTable
-                     printf("we need to add it\n");
+                    printf("we need to add it\n");
                 }
-                if (receivedFrame.ttl > 0) {
+                if (receivedFrame.ttl > 0)
+                {
                     printf("Re-enviando broadcast ttl %d\n", receivedFrame.ttl);
                     delay(1000);
-                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl-1);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl - 1);
                     transmissionPort = txPin2;
                     startTransmission();
                 }
             }
             return;
         }
-        if (isForMe) {
+        if (isForMe)
+        {
             printf("Received cmd %d\n", receivedFrame.cmd);
         }
         boolReceivedFrame = false;
@@ -229,25 +239,30 @@ void checkReceivedTransmission()
 
         bool isForMe = compareMacAddress(receivedEthernet2.destiny, byteMacOrigin);
         bool isBroadcast = compareMacAddress(receivedEthernet2.destiny, byteMacBroadcast);
-        if (isBroadcast) {
+        if (isBroadcast)
+        {
             printf("Got Broadcast...\n");
-            if (receivedFrame2.cmd == 5) {
+            if (receivedFrame2.cmd == 5)
+            {
                 int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet2.source);
-                if (p == -1) {
+                if (p == -1)
+                {
                     //add into routeTable
                     printf("we need to add it\n");
                 }
-                if (receivedFrame2.ttl > 0) {
+                if (receivedFrame2.ttl > 0)
+                {
                     printf("Re-enviando broadcast ttl %d\n", receivedFrame2.ttl);
                     delay(1000);
-                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl-1);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl - 1);
                     transmissionPort = txPin2;
                     startTransmission();
                 }
             }
             return;
         }
-        if (isForMe) {
+        if (isForMe)
+        {
             printf("Received cmd %d\n", receivedFrame.cmd);
         }
         boolReceivedFrame = false;
@@ -258,7 +273,8 @@ void checkReceivedTransmission()
 
 void broadcast()
 {
-    if (transmissionStartedSend) return;
+    if (transmissionStartedSend)
+        return;
     currentTime = time(NULL);
     printf("current time %d\n", currentTime);
     printf("broadcast time %d\n", timeToBroadcast);
@@ -266,7 +282,7 @@ void broadcast()
     if (currentTime - timeToBroadcast > 0)
     {
         timeToBroadcast = currentTime + 120;
-        
+
         prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
         transmissionPort = txPin;
         startTransmission();
