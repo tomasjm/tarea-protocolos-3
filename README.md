@@ -15,3 +15,9 @@ En otra terminal
 ```sudo ./punto 11:27:bb:44:b1:ca b8:27:eb:15:b1:ca 23 22 21```
 
 Para testear el error de las direcciones MAC pueden ser cambiadas libremente.
+
+PINES
+NODO  CLOCK  TX  RX     TX2   RX2
+1        0    2   3      8     9
+2       23   24   25     22    21
+3       1    23   24     29    28
