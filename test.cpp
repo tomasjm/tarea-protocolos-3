@@ -16,6 +16,8 @@
 #include <poll.h>
 #include <time.h>
 
+#include <wiringPi.h>
+
 #define MAX_TRANSFER_SIZE 300
 #define MAX_CONNECTED_NODES 2
 #define BYTE unsigned char
@@ -70,6 +72,7 @@ int rxPin2;
 
 int main(int argc, char *args[]) {
 
+    // Check for ARGS: strMacSource clockPin txPin rxPin txPin2 rxPin2
     if (argc >= 7)
     {
         memcpy(macOrigin, args[1], sizeof(macOrigin));
@@ -86,11 +89,74 @@ int main(int argc, char *args[]) {
         printf("OriginMacAddress ClockPin TxPin RxPin TxPin2 RxPin2\n");
         exit(1);
     }
+    // Setup wiring pi
+    if (wiringPiSetup() == -1)
+    {
+        printf("Error initializing wiring pi\n");
+        exit(1);
+    }
+    //pin config
+    pinMode(rxPin, INPUT);
+    pinMode(rxPin2, INPUT);
+    pinMode(txPin, OUTPUT);
+    pinMode(txPin2, OUTPUT);
+    printf("Pins: clock: %d | tx: %d | rx: %d\n", clockPin, txPin, rxPin);
+    printf("Pins2: clock: %d | tx: %d | rx: %d\n", clockPin, txPin2, rxPin2);
+    delay(5000);
 
-    prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
-    printByteArray(slipArrayToSend, 22);
-    printByteArray(ethernet.frame, 20);
-    printByteArray(frame.frame, 2);
-    cDelay(20000);
+    // CONFIGURE INTERRUPT FOR SENDING AND RECEIVING DATA
+    if (wiringPiISR(clockPin, INT_EDGE_BOTH, &cb) < 0)
+    {
+        printf("Unable to start interrupt function\n");
+    }
+    while(true) {
+        printf("waiting callback\n");
+        delay(1000);
+    }
     return 0;
+}
+
+void cb(void)
+{
+    printf("CALLBACKKKKK\n");
+    bool level = digitalRead(rxPin);
+    bool level2 = digitalRead(rxPin2);
+    processBit(level);
+    processBit2(level2);
+    if (transmissionStartedSend)
+    {
+        if (endCount == 0 && slipArrayToSend[nbytesSend] != 0xC0)
+        {
+            nbytesSend++;
+            return;
+        }
+
+        // Writes on TX Pin
+        digitalWrite(transmissionPort, (slipArrayToSend[nbytesSend] >> nbitsSend) & 0x01);
+
+        // Update bit counter
+        nbitsSend++;
+
+        // Update byte counter
+        if (nbitsSend == 8)
+        {
+            nbitsSend = 0;
+            endCount += slipArrayToSend[nbytesSend] == 0xC0;
+            // Finish transmission
+            if (slipArrayToSend[nbytesSend] == 0xC0 && endCount > 1)
+            {
+                endCount = 0;
+                nbytesSend = 0;
+                transmissionStartedSend = false;
+                return;
+            }
+            nbytesSend++;
+        }
+    }
+    else
+    {
+        // Channel idle
+        digitalWrite(txPin, 1);
+        digitalWrite(txPin2, 1);
+    }
 }
