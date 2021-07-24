@@ -19,6 +19,7 @@
 #include <wiringPi.h>
 
 #define MAX_TRANSFER_SIZE 300
+#define MAX_CONNECTED_NODES 2
 #define BYTE unsigned char
 
 int transmissionPort;
@@ -31,8 +32,8 @@ void loop();
 void broadcast();
 void checkReceivedTransmission();
 
-int maxConnectedNodes = 2;
-Node routeTable[maxConnectedNodes];
+
+Node routeTable[MAX_CONNECTED_NODES];
 
 int timeToBroadcast = 0;
 int currentTime = 0;
@@ -139,7 +140,7 @@ void loop()
         if (option == 1)
         {
             int almostOneNode = 0;
-            for (int i = 0; i < maxConnectedNodes; i++)
+            for (int i = 0; i < MAX_CONNECTED_NODES; i++)
             {
                 if (routeTable[i].init == true)
                 {
@@ -194,7 +195,7 @@ void checkReceivedTransmission()
         if (isBroadcast) {
             printf("Got Broadcast...\n");
             if (receivedFrame.cmd == 5) {
-                int p = getPosOnRouteTable(routeTable, maxConnectedNodes, receivedEthernet.source);
+                int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet.source);
                 if (p == -1) {
                     //add into routeTable
                 }

@@ -7,4 +7,4 @@ struct Node {
 
 bool macExistsOnRouteTable(Node routeTable[], int maxLen, BYTE mac[6]);
 
-int getPosOnRouteTable(Node routeTable[], int maxLen, BYTE mac[6])
+int getPosOnRouteTable(Node routeTable[], int maxLen, BYTE mac[6]);
