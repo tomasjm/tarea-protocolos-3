@@ -38,9 +38,6 @@ Node routeTable[MAX_CONNECTED_NODES];
 int timeToBroadcast = 0;
 int currentTime = 0;
 
-BYTE slipArray[MAX_TRANSFER_SIZE];
-Ethernet ethf;
-Frame f;
 
 char macOrigin[18] = "00:00:00:00:00:00";
 char macBroadcast[18] = "ff:ff:ff:ff:ff:ff";
@@ -240,10 +237,10 @@ void checkReceivedTransmission()
                     //add into routeTable
                     printf("we need to add it\n");
                 }
-                if (receivedFrame.ttl > 0) {
-                    printf("Re-enviando broadcast ttl %d\n", receivedFrame.ttl);
+                if (receivedFrame2.ttl > 0) {
+                    printf("Re-enviando broadcast ttl %d\n", receivedFrame2.ttl);
                     delay(1000);
-                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl-1);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet2, frame2, receivedFrame2.ttl-1);
                     transmissionPort = txPin2;
                     startTransmission();
                 }
@@ -270,7 +267,7 @@ void broadcast()
     {
         timeToBroadcast = currentTime + 120;
         
-        prepareBroadcast(slipArray, byteMacOrigin, byteMacBroadcast, ethf, f, 2);
+        prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethf, f, 2);
         transmissionPort = txPin;
         startTransmission();
     }
