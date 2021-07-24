@@ -1,3 +1,7 @@
+#ifndef RING_H
+#define RING_H
+#define BYTE unsigned char
+
 struct Node {
   BYTE mac[6];
   int port; // 1 or 2
@@ -8,3 +12,4 @@ struct Node {
 bool macExistsOnRouteTable(Node routeTable[], int maxLen, BYTE mac[6]);
 
 int getPosOnRouteTable(Node routeTable[], int maxLen, BYTE mac[6]);
+#endif
