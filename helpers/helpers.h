@@ -15,11 +15,11 @@ void getByteArrayOfInteger(int v, BYTE arr[]);
 
 void getIntegerOfByteArray(BYTE arr[], int *v_ptr);
 
-void prepareTransmissionOfTemperature(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f);
+void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f);
 
-void prepareTransmissionOfTextMessage(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f);
+void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f);
 
-void prepareBroadcast(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f, int ttl);
+void prepareBroadcast(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl);
 
 void getTextMessage(char msg[], int length);
 
@@ -27,7 +27,7 @@ void getValuesFromTemperatureFrame(Frame &f, int *vTemp, int *vTimestamp);
 
 void getMessageFromTextMessageFrame(Frame &f, char msg[]);
 
-void generateRawEthernet(Ethernet &ethf, Frame &f, char strMacSource[18], char strMacDestiny[18]);
+void generateRawEthernet(Ethernet &ethf, Frame &f, BYTE byteMacSource[6], BYTE byteMacDestiny[6]);
 void generateRawFrame(Frame &f, int cmd, int sa, int length, BYTE data[]);
 
 bool getFrameFromTransmission(BYTE slipArray[], Frame &f, Ethernet &ef);

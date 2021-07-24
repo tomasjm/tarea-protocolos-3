@@ -38,7 +38,7 @@ void getIntegerOfByteArray(BYTE arr[], int *vPtr) {
 }
 
 // This function will package all required variables to get the final SlipArray to use in the transmission
-void prepareTransmissionOfTemperature(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f) {
+void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f) {
   int tempValue[1];
   int timeValue[1];
   readSensorData(1, tempValue, timeValue);
@@ -52,24 +52,24 @@ void prepareTransmissionOfTemperature(BYTE slipArray[], char strMacSource[18], c
     dataFrameToSend[i+4] = byteTimeValue[i];
   }
   generateRawFrame(f, 1, 0, 8, dataFrameToSend); // Gets frame to send Telemetry
-  generateRawEthernet(ethf, f, strMacSource, strMacDestiny); // Gets Ethernet to send Frame of Telemetry
+  generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny); // Gets Ethernet to send Frame of Telemetry
   packSlip(slipArray, ethf.frame, 28); // Gets SlipArray of the Ethernet to send Frame of Telemetry
 }
 
 // This function is similar to prepareTransmissionOfTemperature but for sending a TextMessage of 30 characters
-void prepareTransmissionOfTextMessage(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f) {
+void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f) {
   BYTE msg[30];
   printf("Enter message of 30 characters to send: \n");
   getTextMessage((char*)msg, 30);
   generateRawFrame(f, 2, 0, 30, msg);
-  generateRawEthernet(ethf, f, strMacSource, strMacDestiny);
+  generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny);
   packSlip(slipArray, ethf.frame, 50);
 }
 
-void prepareBroadcast(BYTE slipArray[], char strMacSource[18], char strMacDestiny[18], Ethernet &ethf, Frame &f, int ttl) {
+void prepareBroadcast(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl) {
   BYTE data[1] = {0};
   generateRawFrame(f, 5, ttl, 0, data);
-  generateRawEthernet(ethf, f, strMacSource, strMacDestiny);
+  generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny);
   packSlip(slipArray, ethf.frame, 18);
 }
 
@@ -99,12 +99,12 @@ void getMessageFromTextMessageFrame(Frame &f, char msg[]) {
 }
 
 // Generates EthernetFrame from the custom Frame and some Mac Addresses
-void generateRawEthernet(Ethernet &ethf, Frame &f, char strMacSource[18], char strMacDestiny[18]) {
-  BYTE macSource[6], macDestiny[6];
-  convertMacAddressToByteArray(strMacSource, macSource);
-  convertMacAddressToByteArray(strMacDestiny, macDestiny);
-  memcpy(ethf.source, macSource, sizeof(ethf.source));
-  memcpy(ethf.destiny, macDestiny, sizeof(ethf.destiny));
+void generateRawEthernet(Ethernet &ethf, Frame &f, BYTE byteMacSource[6], BYTE byteMacDestiny[6]) {
+  //BYTE macSource[6], macDestiny[6];
+  //convertMacAddressToByteArray(strMacSource, macSource);
+  //convertMacAddressToByteArray(strMacDestiny, macDestiny);
+  memcpy(ethf.source, byteMacSource, sizeof(ethf.source));
+  memcpy(ethf.destiny, byteMacDestiny, sizeof(ethf.destiny));
   ethf.length = 2+f.length;
   memcpy(ethf.data, f.frame, sizeof(ethf.data));
   packEthernet(ethf);

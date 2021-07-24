@@ -228,7 +228,7 @@ void broadcast()
     {
         timeToBroadcast = currentTime + 30;
         
-        prepareBroadcast(slipArray, macOrigin, macBroadcast, ethf, f, 2);
+        prepareBroadcast(slipArray, byteMacOrigin, byteMacBroadcast, ethf, f, 2);
         transmissionPort = txPin1;
         startTransmission();
     }
