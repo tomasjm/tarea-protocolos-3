@@ -18,6 +18,6 @@ Para testear el error de las direcciones MAC pueden ser cambiadas libremente.
 
 PINES
 NODO  CLOCK  TX  RX     TX2   RX2
-1        0    2   3      8     9
+1        0    2   3      9     8
 2       23   24   25     22    21
-3       1    23   24     29    28
+3       1     4   5      29    28
