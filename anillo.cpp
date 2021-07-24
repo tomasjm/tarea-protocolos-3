@@ -37,7 +37,7 @@ Node routeTable[MAX_CONNECTED_NODES];
 int timeToBroadcast = 0;
 int currentTime = 0;
 
-char macOrigin[18] = "00:00:00:00:00:00";
+char macOrigin[18];
 char macBroadcast[18] = "ff:ff:ff:ff:ff:ff";
 BYTE byteMacBroadcast[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 BYTE byteMacOrigin[6];
@@ -291,6 +291,7 @@ void broadcast()
 
 void cb(void)
 {
+    printf("run callback\n");
     bool level = digitalRead(rxPin);
     bool level2 = digitalRead(rxPin2);
     processBit(level);

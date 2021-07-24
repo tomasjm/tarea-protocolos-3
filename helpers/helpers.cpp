@@ -70,7 +70,7 @@ void prepareBroadcast(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDesti
   BYTE data[1] = {0};
   generateRawFrame(f, 5, ttl, 0, data);
   generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny);
-  packSlip(slipArray, ethf.frame, 18);
+  packSlip(slipArray, ethf.frame, 20);
 }
 
 // Function to get a TextMessage with blank spaces
