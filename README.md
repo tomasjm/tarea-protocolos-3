@@ -1,23 +1,27 @@
-Se testeó el programa siguiendo estos pasos:
+EL PROGRAMA NO HA PODIDO SER TESTEADO EN LAS RASPBERRYS
 
-```git clone https://github.com/tomasjm/tarea-protocolos-entrega```
+```git clone https://github.com/tomasjm/tarea-protocolos-3```
 
-```cd tarea-protocolos-entrega```
+```cd tarea-protocolos-3```
 
 ```make```
 
-En una terminal
+Luego, para ejecturar los programas, en una terminal:
 
-```sudo ./punto b8:27:eb:15:b1:ca 11:27:bb:44:b1:ca 0 2 3```
+```make run1```
 
 En otra terminal
 
-```sudo ./punto 11:27:bb:44:b1:ca b8:27:eb:15:b1:ca 23 22 21```
+```make run2```
+
+En otra terminal
+
+```make run3```
 
 Para testear el error de las direcciones MAC pueden ser cambiadas libremente.
 
-PINES
+<!-- PINES
 NODO  CLOCK  TX  RX     TX2   RX2
 1        0    2   3      9     8
 2       23   24   25     22    21
-3       1     4   5      29    28
+3       1     4   5      29    28 -->
