@@ -140,6 +140,7 @@ void loop()
         else
         {
             printf("Timeout...\n");
+            delay(500);
         }
         clearScreen();
 
@@ -158,6 +159,7 @@ void loop()
             if (almostOneNode == 0)
             {
                 printf("Have no detected nodes connected to the network, please wait a moment...\n");
+                delay(2000);
             }
             else
             {
@@ -181,6 +183,7 @@ void loop()
                 else
                 {
                     printf("Timeout...\n");
+                    delay(500);
                 }
             }
         }
