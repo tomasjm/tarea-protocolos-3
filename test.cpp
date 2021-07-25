@@ -70,17 +70,18 @@ int rxPin2;
 
 int main(int argc, char *args[])
 {
-    Node node1, node2;
-    BYTE mac1[6] = {0xAA, 0xEE, 0x11, 0x11, 0x11, 0x11};
-    BYTE mac2[6] =  {0xCC, 0x22, 0x11, 0x11, 0x11, 0x11};
-    memcpy(routeTable[0].mac, mac1, 6);
-    routeTable[0].port = 1;
-    routeTable[0].init = true;
-    routeTable[0].ttl = 2;
-    memcpy(routeTable[1].mac, mac2, 6);
-    routeTable[1].port = 2;
-    routeTable[1].ttl = 1;
-    routeTable[1].init = true;
-    printRouteTable(routeTable, MAX_CONNECTED_NODES);
+    printMenu();
+    // Node node1, node2;
+    // BYTE mac1[6] = {0xAA, 0xEE, 0x11, 0x11, 0x11, 0x11};
+    // BYTE mac2[6] =  {0xCC, 0x22, 0x11, 0x11, 0x11, 0x11};
+    // memcpy(routeTable[0].mac, mac1, 6);
+    // routeTable[0].port = 1;
+    // routeTable[0].init = true;
+    // routeTable[0].ttl = 2;
+    // memcpy(routeTable[1].mac, mac2, 6);
+    // routeTable[1].port = 2;
+    // routeTable[1].ttl = 1;
+    // routeTable[1].init = true;
+    // printRouteTable(routeTable, MAX_CONNECTED_NODES);
     return 0;
 }
