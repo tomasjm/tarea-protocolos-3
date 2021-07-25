@@ -186,7 +186,7 @@ void loop()
         }
         else if (option == 2)
         {
-            exit(1); // program exit
+            exit(0); // program exit
         }
         if (transmissionStartedSend && sendingTelemetry)
         {
@@ -206,6 +206,7 @@ void loop()
         broadcast(); // broadcast process
 
         fflush(stdin);
+        option = 0;
 
         delay(100);
     }
@@ -380,13 +381,13 @@ void broadcast()
 {
     if (transmissionStartedSend)
         return;
-    currentTime = time(NULL);
-    printf("current time %d\n", currentTime);
-    printf("broadcast time %d\n", timeToBroadcast);
-    printf("diff %d\n", currentTime - timeToBroadcast);
+    currentTime = time(NULL); // returns unix timestamp in seconds
+    //printf("current time %d\n", currentTime);
+    //printf("broadcast time %d\n", timeToBroadcast);
+    //printf("diff %d\n", currentTime - timeToBroadcast);
     if (currentTime - timeToBroadcast > 0)
     {
-        timeToBroadcast = currentTime + 120;
+        timeToBroadcast = currentTime + 120; // we add 2 minutes to timestamp
 
         prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
         setupTransmissionPort(1);
