@@ -157,7 +157,7 @@ void loop()
             }
             if (almostOneNode == 0)
             {
-                printf("No se han detectado nodos en la red, espere un momento a que se conecten\n");
+                printf("Have no detected nodes connected to the network, please wait a moment...\n");
             }
             else
             {
@@ -186,7 +186,7 @@ void loop()
         }
         else if (option == 2)
         {
-            exit(-1); // program exit
+            exit(1); // program exit
         }
         if (transmissionStartedSend && sendingTelemetry)
         {
