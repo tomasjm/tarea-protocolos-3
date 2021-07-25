@@ -172,12 +172,15 @@ void loop()
                 {
                     fgets(line2, sizeof(line2), stdin);
                     sscanf(line2, "%d", &selecNode);
-                    if (selecNode >= 0 || selecNode < MAX_CONNECTED_NODES)
+                    if (selecNode >= 0 && selecNode < MAX_CONNECTED_NODES)
                     {
                         int p = selecNode;
                         prepareTransmissionOfTemperature(slipArrayToSend, byteMacOrigin, routeTable[p].mac, ethernet, frame, 2);
                         setupTransmissionPort(routeTable[p].port);
                         startTransmission((char *)"SENDING_TELEMETRY");
+                    } else {
+                        printf("Please select a valid node identifier \n");
+                        delay(1000);
                     }
                 }
                 else
