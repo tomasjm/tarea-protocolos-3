@@ -8,14 +8,23 @@ all:
 	g++ -Wall -c ring/ring.cpp
 	g++ -Wall -o anillo anillo.o ethernet.o protocol.o slip.o menu.o helpers.o ring.o -lwiringPi
 test:
-	g++ -Wall -c test.cpp -lwiringPi
+	g++ -Wall -c test.cpp 
 	g++ -Wall -c ethernet/ethernet.cpp
 	g++ -Wall -c protocol/protocol.cpp
 	g++ -Wall -c slip/slip.cpp
 	g++ -Wall -c menu/menu.cpp
 	g++ -Wall -c helpers/helpers.cpp
 	g++ -Wall -c ring/ring.cpp
-	g++ -Wall -o test test.o ethernet.o protocol.o slip.o menu.o helpers.o ring.o -lwiringPi
+	g++ -Wall -o test test.o ethernet.o protocol.o slip.o menu.o helpers.o ring.o 
+check:
+	g++ -Wall -c checkcompile.cpp 
+	g++ -Wall -c ethernet/ethernet.cpp
+	g++ -Wall -c protocol/protocol.cpp
+	g++ -Wall -c slip/slip.cpp
+	g++ -Wall -c menu/menu.cpp
+	g++ -Wall -c helpers/helpers.cpp
+	g++ -Wall -c ring/ring.cpp
+	g++ -Wall -o check checkcompile.o ethernet.o protocol.o slip.o menu.o helpers.o ring.o 
 run1:
 	sudo ./anillo 11:27:bb:44:b1:ca 0 2 3 9 8
 run2:

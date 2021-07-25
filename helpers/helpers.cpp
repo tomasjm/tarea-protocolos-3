@@ -32,16 +32,18 @@ void getByteArrayOfInteger(int v, BYTE arr[]) {
 }
 
 void getIntegerOfByteArray(BYTE arr[], int *vPtr) {
-  for (int i = 0; i< sizeof(int); i++) {
+  for (int i = 0; i< 4; i++) {
     *vPtr |= (arr[i] << (i*8));
   }
 }
 
 // This function will package all required variables to get the final SlipArray to use in the transmission
-void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f) {
+void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl) {
   int tempValue[1];
   int timeValue[1];
   readSensorData(1, tempValue, timeValue);
+  //tempValue[0] = 1337;
+  //timeValue[0] = 9999;
   BYTE byteTempValue[4];
   BYTE byteTimeValue[4];
   BYTE dataFrameToSend[8];
@@ -51,21 +53,29 @@ void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], B
     dataFrameToSend[i] = byteTempValue[i];
     dataFrameToSend[i+4] = byteTimeValue[i];
   }
-  generateRawFrame(f, 1, 0, 8, dataFrameToSend); // Gets frame to send Telemetry
+  generateRawFrame(f, 1, ttl, 8, dataFrameToSend); // Gets frame to send Telemetry
   generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny); // Gets Ethernet to send Frame of Telemetry
   packSlip(slipArray, ethf.frame, 28); // Gets SlipArray of the Ethernet to send Frame of Telemetry
 }
 
+// This re-packages a received Frame of Temperature to re-send to another node if ttl > 0
+void prepareReTransmissionOfTemperature(BYTE slipArray[], Ethernet &ethf, Frame &f, int ttl) {
+  generateRawFrame(f, f.cmd, ttl, f.length, f.data);
+  generateRawEthernet(ethf, f, ethf.source, ethf.destiny);
+  packSlip(slipArray, ethf.frame, 28);
+}
+
 // This function is similar to prepareTransmissionOfTemperature but for sending a TextMessage of 30 characters
-void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f) {
+void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl) {
   BYTE msg[30];
   printf("Enter message of 30 characters to send: \n");
   getTextMessage((char*)msg, 30);
-  generateRawFrame(f, 2, 0, 30, msg);
+  generateRawFrame(f, 2, ttl, 30, msg);
   generateRawEthernet(ethf, f, byteMacSource, byteMacDestiny);
   packSlip(slipArray, ethf.frame, 50);
 }
 
+// Generates SlipArray to send a Broadcast with CMD=5 with the objective of generate a RouteTable with nodes connected to the network
 void prepareBroadcast(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl) {
   BYTE data[1] = {0};
   generateRawFrame(f, 5, ttl, 0, data);
@@ -120,7 +130,7 @@ void generateRawFrame(Frame &f, int cmd, int ttl, int length, BYTE data[]) {
 
 // It gets final Custom Frame from a received SlipArray and returns a bool if it detects a FCS Error
 bool getFrameFromTransmission(BYTE slipArray[], Frame &f, Ethernet &ef) {
-  int n = unpackSlip(ef.frame, slipArray);
+  unpackSlip(ef.frame, slipArray);
   bool error = unpackEthernet(ef);
   if (error) {
     return true;

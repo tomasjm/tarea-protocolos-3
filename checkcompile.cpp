@@ -16,7 +16,6 @@
 #include <poll.h>
 #include <time.h>
 
-#include <wiringPi.h>
 
 #define MAX_TRANSFER_SIZE 300
 #define MAX_CONNECTED_NODES 2
@@ -24,7 +23,7 @@
 
 // Prototypes
 
-void startTransmission(char *msg);
+void startTransmission(char* msg);
 void cb(void);
 void processBit(bool level);
 void processBit2(bool level);
@@ -33,6 +32,7 @@ void broadcast();
 void checkReceivedTransmission();
 void setupTransmissionPort(int port);
 void setTypeTransmission(char *msg);
+
 
 // General purpose global vars
 
@@ -56,6 +56,8 @@ BYTE byteMacOrigin[6];
 int timeToBroadcast = 0;
 int currentTime = 0;
 
+
+
 // GLOBAL VARS FOR SENDING PURPOSES
 volatile int nbitsSend = 0;
 BYTE slipArrayToSend[MAX_TRANSFER_SIZE];
@@ -66,7 +68,6 @@ int endCount = 0;
 Ethernet ethernet;
 Frame frame;
 char sendTypeTransmission[30];
-bool sendingTelemetry = false;
 
 // GLOBAL VARS FOR RECEIVING PURPOSES
 volatile int nbitsReceived, nbitsReceived2 = 0;
@@ -78,6 +79,7 @@ BYTE slipArrayReceived[MAX_TRANSFER_SIZE], slipArrayReceived2[MAX_TRANSFER_SIZE]
 bool error, error2 = false;
 Frame receivedFrame, receivedFrame2;
 Ethernet receivedEthernet, receivedEthernet2;
+
 
 int main(int argc, char *args[])
 {
@@ -100,27 +102,19 @@ int main(int argc, char *args[])
         exit(1);
     }
     // Setup wiring pi
-    if (wiringPiSetup() == -1)
-    {
-        printf("Error initializing wiring pi\n");
-        exit(1);
-    }
+   
     //pin config
-    pinMode(rxPin, INPUT);
-    pinMode(rxPin2, INPUT);
-    pinMode(txPin, OUTPUT);
-    pinMode(txPin2, OUTPUT);
+    
+    
+    
+    
     printf("Pins: clock: %d | tx: %d | rx: %d\n", clockPin, txPin, rxPin);
     printf("Pins2: clock: %d | tx: %d | rx: %d\n", clockPin, txPin2, rxPin2);
-    delay(5000);
+    cDelay(5000);
 
     // CONFIGURE INTERRUPT FOR SENDING AND RECEIVING DATA
-    if (wiringPiISR(clockPin, INT_EDGE_BOTH, &cb) < 0)
-    {
-        printf("Unable to start interrupt function\n");
-    }
 
-    loop(); // Main LOOP of the program
+    loop();
     return 0;
 }
 
@@ -143,7 +137,7 @@ void loop()
         }
         clearScreen();
 
-        // Check if input option is registered
+        // hacer algo con las opciones
         if (option == 1)
         {
             int almostOneNode = 0;
@@ -157,222 +151,127 @@ void loop()
             }
             if (almostOneNode == 0)
             {
-                printf("No se han detectado nodos en la red, espere un momento a que se conecten\n");
+                printf("There is no Nodes connected or detected in the Network, please wait for a broadcast and try again\n");
             }
             else
             {
-                printf("Select a Node to send a Telemetry\n");
-                printRouteTable(routeTable, MAX_CONNECTED_NODES);
-                int selecNode = -1;
-                char line2[20];
-                struct pollfd mypoll = {STDIN_FILENO, POLLIN | POLLPRI};
-                if (poll(&mypoll, 1, 6000))
-                {
-                    fgets(line2, sizeof(line2), stdin);
-                    sscanf(line2, "%d", &selecNode);
-                    if (selecNode >= 0 || selecNode < MAX_CONNECTED_NODES)
-                    {
-                        int p = selecNode;
-                        prepareTransmissionOfTemperature(slipArrayToSend, byteMacOrigin, routeTable[p].mac, ethernet, frame, 2);
-                        setupTransmissionPort(routeTable[p].port);
-                        startTransmission((char *)"SENDING_TELEMETRY");
-                    }
-                }
-                else
-                {
-                    printf("Timeout...\n");
-                }
+                printf("A Node was detected in the network \n");
             }
         }
         else if (option == 2)
         {
-            exit(-1); // program exit
+            exit(-1);
         }
-        if (transmissionStartedSend && sendingTelemetry)
+
+        if (transmissionStartedSend)
         {
             while (transmissionStartedSend)
             {
                 clearScreen();
                 printf("Sending data... %d bytes\n", nbytesSend);
                 printf("Transmission type: %s\n", sendTypeTransmission);
-                delay(1000);
+                cDelay(1000);
             }
             // RESET ARRAY TO SEND
             memset(slipArrayToSend, 0, sizeof(slipArrayToSend));
         }
 
-        checkReceivedTransmission(); // check bytes received process
+        checkReceivedTransmission();
 
-        broadcast(); // broadcast process
-
+        // proceso automatico
+        broadcast();
         fflush(stdin);
-
-        delay(100);
+        cDelay(3000);
     }
 }
 
 void checkReceivedTransmission()
 {
-    // MESSAGE RECEIVED FROM PINOUT_1
     if (boolReceivedFrame)
     {
+        printf("Se ha recibido un mensaje desde el puerto 1\n");
+        cDelay(1000);
         error = getFrameFromTransmission(slipArrayReceived, receivedFrame, receivedEthernet);
         if (error)
         {
             printf("----- AN ERROR WAS DETECTED WITH FCS ----- \n");
             printf("-----    IGNORING COMPLETE MESSAGE   ----- \n");
-            delay(5000);
+            cDelay(5000);
         }
 
         bool isForMe = compareMacAddress(receivedEthernet.destiny, byteMacOrigin);
         bool isBroadcast = compareMacAddress(receivedEthernet.destiny, byteMacBroadcast);
-
-        // check if message is a broadcast and has the special cmd = 5
-        if (isBroadcast && receivedFrame.cmd == 5)
+        if (isBroadcast)
         {
-            // check if mac is already registered, returns -1 if not
-            int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet.source);
-            if (p == -1)
+            printf("Got Broadcast...\n");
+            if (receivedFrame.cmd == 5)
             {
-                // We add node to RouteTable
-                Node node;
-                memcpy(node.mac, receivedEthernet.source, 6);
-                node.ttl = receivedFrame.ttl;
-                if (receivedFrame.ttl == 2)
+                int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet.source);
+                if (p == -1)
                 {
-                    // if ttl = 2, it means that broadcast was sent by node at PINOUT_1
-                    node.port = 1;
+                    //add into routeTable
+                    printf("we need to add it\n");
                 }
-                else
+                if (receivedFrame.ttl > 0)
                 {
-                    // if ttl = 1, it means that broadcast was sent by node at PINOUT_2
-                    node.port = 2;
+                    printf("Re-enviando broadcast ttl %d\n", receivedFrame.ttl);
+                    cDelay(1000);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl - 1);
+                    setupTransmissionPort(2);
+                    startTransmission((char*)"RE-BROADCAST-1");
                 }
-                addNodeToRouteTable(routeTable, MAX_CONNECTED_NODES, node);
-            }
-            // if broadcast has ttl=2 means we need to re-send it to another node packaging frame with ttl-1
-            if (receivedFrame.ttl > 1)
-            {
-                prepareBroadcast(slipArrayToSend, receivedEthernet.source, receivedEthernet.destiny, ethernet, frame, receivedFrame.ttl - 1);
-                setupTransmissionPort(2);
-                startTransmission((char *)"RE-BROADCAST-1");
             }
             return;
         }
-
         if (isForMe)
         {
-            if (receivedFrame.cmd == 1)
-            {
-                int temp = 0;
-                int timestamp = 0;
-                // Gets telemetry data from a frame with cmd = 1
-                getValuesFromTemperatureFrame(receivedFrame, &temp, &timestamp);
-                printf("----- RECEIVED TELEMETRY ----- \n");
-                printf("Temperature: %.2f \n", ((float)temp - 10000) / 1000);
-                printf("Timestamp: %d \n", timestamp);
-                delay(5000);
-            }
-            else
-            {
-                // if cmd has another value, probably is an undetected error
-                printf("Received an unknown cmd, probably an error...\n");
-                delay(5000);
-            }
-        }
-        else
-        {
-            // Programs are designed to work with only messages of Telemetry or Broadcast
-            // So check if ttl is > 1 to re-send Telemetry to another node
-            if (receivedFrame.ttl > 1)
-            {
-                memcpy(&ethernet, &receivedEthernet, sizeof(ethernet));
-                memcpy(&frame, &receivedFrame, sizeof(frame));
-                prepareReTransmissionOfTemperature(slipArrayToSend, ethernet, frame, frame.ttl - 1);
-                setupTransmissionPort(2);
-                startTransmission((char *)"RE-TRANSMISSION-TEMP-1");
-            }
+            printf("Received cmd %d\n", receivedFrame.cmd);
         }
         boolReceivedFrame = false;
     }
-    // MESSAGE RECEIVED FROM PINOUT_2
     if (boolReceivedFrame2)
     {
+        printf("Se ha recibido un mensaje desde el puerto 2\n");
+        cDelay(1000);
         error2 = getFrameFromTransmission(slipArrayReceived2, receivedFrame2, receivedEthernet2);
         if (error2)
         {
             printf("----- AN ERROR WAS DETECTED WITH FCS ----- \n");
             printf("-----    IGNORING COMPLETE MESSAGE   ----- \n");
-            delay(5000);
+            cDelay(5000);
         }
 
         bool isForMe = compareMacAddress(receivedEthernet2.destiny, byteMacOrigin);
         bool isBroadcast = compareMacAddress(receivedEthernet2.destiny, byteMacBroadcast);
-
-        if (isBroadcast && receivedFrame2.cmd == 5)
+        if (isBroadcast)
         {
-            int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet2.source);
-            if (p == -1)
+            printf("Got Broadcast...\n");
+            if (receivedFrame2.cmd == 5)
             {
-                // We add node to RouteTable
-                Node node;
-                memcpy(node.mac, receivedEthernet2.source, 6);
-                node.ttl = receivedFrame2.ttl;
-                if (receivedFrame2.ttl == 2)
+                int p = getPosOnRouteTable(routeTable, MAX_CONNECTED_NODES, receivedEthernet2.source);
+                if (p == -1)
                 {
-                    // if ttl = 2, it means that broadcast was sent by node at PINOUT_2
-                    node.port = 2;
+                    //add into routeTable
+                    printf("we need to add it\n");
                 }
-                else
+                if (receivedFrame2.ttl > 0)
                 {
-                    // if ttl = 1, it means that broadcast was sent by node at PINOUT_1
-                    node.port = 1;
+                    printf("Re-enviando broadcast ttl %d\n", receivedFrame2.ttl);
+                    cDelay(1000);
+                    prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl - 1);
+                    setupTransmissionPort(1);
+                    startTransmission((char*)"RE-BROADCAST-2");
                 }
-                addNodeToRouteTable(routeTable, MAX_CONNECTED_NODES, node);
             }
-            if (receivedFrame2.ttl > 1)
-            {
-                prepareBroadcast(slipArrayToSend, receivedEthernet2.source, receivedEthernet2.destiny, ethernet, frame, receivedFrame2.ttl - 1);
-                setupTransmissionPort(1);
-                startTransmission((char *)"RE-BROADCAST-2");
-            }
+            return;
         }
-        return;
-
         if (isForMe)
         {
-            if (receivedFrame2.cmd == 1)
-            {
-                int temp = 0;
-                int timestamp = 0;
-                // Gets telemetry data from a frame with cmd = 1
-                getValuesFromTemperatureFrame(receivedFrame2, &temp, &timestamp);
-                printf("----- RECEIVED TELEMETRY ----- \n");
-                printf("Temperature: %.2f \n", ((float)temp - 10000) / 1000);
-                printf("Timestamp: %d \n", timestamp);
-                delay(5000);
-            }
-            else
-            {
-                // if cmd has another value, probably is an undetected error
-                printf("Received an unknown cmd, probably an error...\n");
-                delay(5000);
-            }
+            printf("Received cmd %d\n", receivedFrame.cmd);
         }
-        else
-        {
-            if (receivedFrame2.ttl > 1)
-            {
-                memcpy(&ethernet, &receivedEthernet2, sizeof(ethernet));
-                memcpy(&frame, &receivedFrame2, sizeof(frame));
-                prepareReTransmissionOfTemperature(slipArrayToSend, ethernet, frame, frame.ttl - 1);
-                setupTransmissionPort(1);
-                startTransmission((char *)"RE-TRANSMISSION-TEMP-2");
-            }
-        }
-        boolReceivedFrame2 = false;
+        boolReceivedFrame = false;
     }
-    delay(1000);
+    cDelay(3000);
     // for 2
 }
 
@@ -390,15 +289,14 @@ void broadcast()
 
         prepareBroadcast(slipArrayToSend, byteMacOrigin, byteMacBroadcast, ethernet, frame, 2);
         setupTransmissionPort(1);
-        startTransmission((char *)"BROADCAST");
+        startTransmission((char*)"BROADCAST");
     }
 }
 
 void cb(void)
 {
-    //printf("run callback\n");
-    bool level = digitalRead(rxPin);
-    bool level2 = digitalRead(rxPin2);
+    printf("run callback\n");
+    int level, level2 = 0;
     processBit(level);
     processBit2(level2);
     if (transmissionStartedSend)
@@ -410,7 +308,7 @@ void cb(void)
         }
 
         // Writes on TX Pin
-        digitalWrite(transmissionPort, (slipArrayToSend[nbytesSend] >> nbitsSend) & 0x01);
+        
 
         // Update bit counter
         nbitsSend++;
@@ -434,8 +332,7 @@ void cb(void)
     }
     else
     {
-        // Channel idle
-        digitalWrite(idlePort, 1);
+
     }
 }
 
@@ -529,21 +426,15 @@ void startTransmission(char *msg)
     transmissionStartedSend = true;
     setTypeTransmission(msg);
 }
-void setupTransmissionPort(int port)
-{
-    if (port == 1)
-    {
+void setupTransmissionPort(int port) {
+    if (port == 1) {
         transmissionPort = txPin;
         idlePort = txPin2;
-    }
-    else if (port == 2)
-    {
+    } else if (port == 2) {
         transmissionPort = txPin2;
         idlePort = txPin;
     }
 }
-// debug purpose
-void setTypeTransmission(char *msg)
-{
+void setTypeTransmission(char *msg) {
     memcpy(sendTypeTransmission, msg, sizeof(sendTypeTransmission));
 }

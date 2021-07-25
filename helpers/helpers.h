@@ -15,9 +15,11 @@ void getByteArrayOfInteger(int v, BYTE arr[]);
 
 void getIntegerOfByteArray(BYTE arr[], int *v_ptr);
 
-void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f);
+void prepareTransmissionOfTemperature(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl);
 
-void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f);
+void prepareReTransmissionOfTemperature(BYTE slipArray[], Ethernet &ethf, Frame &f, int ttl);
+
+void prepareTransmissionOfTextMessage(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl);
 
 void prepareBroadcast(BYTE slipArray[], BYTE byteMacSource[6], BYTE byteMacDestiny[6], Ethernet &ethf, Frame &f, int ttl);
 

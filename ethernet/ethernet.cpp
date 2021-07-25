@@ -23,7 +23,7 @@ void packEthernet(Ethernet &eth) {
 }
 
 bool unpackEthernet(Ethernet &eth) {
-  eth.length = ((eth.frame[13]&0xFF)<<8) | eth.frame[12] & 0xFF;
+  eth.length = ((eth.frame[13]&0xFF)<<8) | (eth.frame[12] & 0xFF);
   eth.fcs = 0;
   int checkFcs = fcs(eth.frame, 14+eth.length);
   for (int i = 0; i<4; i++) {
@@ -48,7 +48,7 @@ void convertMacAddressToByteArray(char strMac[], BYTE mac[]) {
   sscanf(strMac, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]);
 }
 void printMacAddress(BYTE* mac) {
-  printf("%02X:%02X:%02X:%02X:%02X:%02X\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+  printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
 bool compareMacAddress(BYTE* mac1, BYTE* mac2){
